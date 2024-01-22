@@ -1,16 +1,12 @@
-FROM node:lts-alpine
-
+FROM node:lts-alpine AS build-env
+COPY . /app
+WORKDIR /app
 ENV PORT=18800
 
-WORKDIR /usr/src/app
+RUN npm ci --omit=dev
 
-# Install dependencies
-COPY package.json /usr/src/app/
-RUN npm install
-
-# Copy source
-COPY server.js /usr/src/app
-
+FROM gcr.io/distroless/nodejs20-debian11
+COPY --from=build-env /app /app
+WORKDIR /app
 EXPOSE $PORT
-CMD [ "npm", "start" ]
-
+CMD [ "server.js"]
